@@ -14,7 +14,6 @@
 \usepackage{listingsutf8}
 \usepackage{verbatim}
 
-% Code listing style for Python
 \lstdefinestyle{pythonstyle}{
   language=Python,
   inputencoding=utf8/latin1,
@@ -44,31 +43,329 @@
 }
 
 \lstset{style=pythonstyle}
-
-% Start each section on a new page
 \pretocmd{\section}{\clearpage}{}{}
 
-\title{MTH8302~-- Devoir 3: R\'{e}gression Lin\'{e}aire Multiple}
+\title{MTH8302~-- Devoir 3: Régression Linéaire Multiple}
 \author{Leonard Excoffier (2085276)}
 \date{Hiver 2026}
 
 \begin{document}
 
 \maketitle
-
 \tableofcontents
 
 \section*{Introduction}
 
-Le d\'{e}p\^{o}t GitHub~\cite{repo} contient le code complet, structur\'{e} et pr\^{e}t \`{a} \^{e}tre ex\'{e}cut\'{e}.
-Tous les scripts Python se trouvent dans \texttt{src/} et les sorties (figures, fichiers texte) dans \texttt{output/}.
-Le script \texttt{run.sh} ex\'{e}cute l'ensemble des scripts puis compile le rapport automatiquement.
-Le PDF compil\'{e} est g\'{e}n\'{e}r\'{e} \`{a} la racine du projet.
+Le dépôt GitHub~\cite{repo} contient l'implémentation complète du devoir.
+Le code Python se trouve dans \texttt{src/}, les sorties générées automatiquement dans \texttt{output/}, et le rapport LaTeX dans \texttt{report/}.
+Toutes les valeurs numériques présentées ci-dessous sont injectées dynamiquement à partir des fichiers texte produits par les scripts Python.
+
+\section{Expression du modèle de régression linéaire multiple}
+
+\subsection{Forme scalaire}
+
+Le modèle de régression linéaire multiple s'écrit :
+\[
+Y_i = \beta_0 + \beta_1 X_{i1} + \beta_2 X_{i2} + \cdots + \beta_p X_{ip} + \varepsilon_i,
+\qquad i = 1, \ldots, n.
+\]
+
+où :
+\begin{itemize}
+    \item $Y_i$ est la variable réponse,
+    \item $X_{ij}$ est la $j$-ième variable explicative pour l'observation $i$,
+    \item $\beta_0$ est l'intercept,
+    \item $\beta_1,\ldots,\beta_p$ sont les coefficients de régression,
+    \item $\varepsilon_i$ est l'erreur aléatoire.
+\end{itemize}
+
+Dans ce devoir, la variable réponse est \texttt{wage}, et les variables explicatives proviennent de toutes les colonnes du dataset sauf \texttt{wage} et \texttt{logwage}.
+
+\subsection{Notation matricielle}
+
+Sous forme matricielle, le modèle s'écrit :
+\[
+\mathbf{Y} = \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\varepsilon},
+\]
+avec :
+\[
+\mathbf{Y} \in \mathbb{R}^n,\qquad
+\mathbf{X} \in \mathbb{R}^{n \times (p+1)},\qquad
+\boldsymbol{\beta} \in \mathbb{R}^{p+1},\qquad
+\boldsymbol{\varepsilon} \in \mathbb{R}^n.
+\]
+
+La première colonne de $\mathbf{X}$ contient uniquement des 1 afin d'inclure l'intercept $\beta_0$.
+
+\subsection{Estimateur des moindres carrés ordinaires}
+
+L'estimateur MCO des coefficients est donné par :
+\[
+\hat{\boldsymbol{\beta}} = (\mathbf{X}^\top \mathbf{X})^{-1}\mathbf{X}^\top \mathbf{Y}.
+\]
+
+En pratique, l'implémentation numérique la plus stable consiste à résoudre le système linéaire
+\[
+(\mathbf{X}^\top \mathbf{X})\hat{\boldsymbol{\beta}} = \mathbf{X}^\top \mathbf{Y}
+\]
+avec \texttt{numpy.linalg.solve}, ce qui évite de calculer explicitement l'inverse.
+
+\section{Chargement et préparation des données}
+
+\subsection{Code utilisé}
+
+\lstinputlisting{../src/data_preparation.py}
+
+\subsection{Sorties générées}
+
+Premières lignes du dataset :
+\lstinputlisting[style=pythonstyle,numbers=none,basicstyle=\ttfamily\scriptsize]{../output/head.txt}
+
+Colonnes du dataset :
+\lstinputlisting[style=pythonstyle,numbers=none]{../output/columns.txt}
+
+Types des colonnes :
+\lstinputlisting[style=pythonstyle,numbers=none]{../output/dtypes.txt}
+
+Dimensions du dataset :
+\lstinputlisting[style=pythonstyle,numbers=none]{../output/dimensions.txt}
+
+Valeurs manquantes :
+\lstinputlisting[style=pythonstyle,numbers=none]{../output/missing_values.txt}
+
+Informations sur la matrice de design :
+\lstinputlisting[style=pythonstyle,numbers=none]{../output/design_matrix_info.txt}
+
+Note sur l'encodage :
+\lstinputlisting[style=pythonstyle,numbers=none]{../output/encoding_notes.txt}
+
+\subsection{Commentaires}
+
+Le dataset contient 3000 observations et 11 colonnes brutes.
+Après exclusion de \texttt{wage} et \texttt{logwage}, puis encodage one-hot des variables catégorielles avec \texttt{drop\_first=True}, on obtient 16 variables explicatives effectives.
+La variable \texttt{region} ne crée aucune colonne supplémentaire, car toutes les observations appartiennent à la même modalité.
+
+\section{Ajustement manuel du modèle de régression multiple}
+
+\subsection{Code utilisé}
+
+\lstinputlisting{../src/manual_regression.py}
+
+\subsection{Formule matricielle appliquée}
+
+\lstinputlisting[style=pythonstyle,numbers=none]{../output/manual_matrix_formula.txt}
+
+\subsection{Coefficients estimés manuellement}
+
+\lstinputlisting[style=pythonstyle,numbers=none,basicstyle=\ttfamily\scriptsize]{../output/manual_coefficients.txt}
+
+\subsection{Commentaires}
+
+Les coefficients estimés ont des interprétations conditionnelles.
+Par exemple, le coefficient associé à \texttt{age} mesure la variation moyenne du salaire lorsque l'âge augmente d'une année, en gardant les autres variables explicatives constantes.
+Les coefficients d'éducation sont particulièrement élevés, ce qui suggère un effet important du niveau de scolarité sur le salaire.
+
+\section{Comparaison avec statsmodels et scikit-learn}
+
+\subsection{Code utilisé}
+
+\lstinputlisting{../src/library_comparison.py}
+
+\subsection{Comparaison des coefficients}
+
+Résumé de la comparaison :
+\lstinputlisting[style=pythonstyle,numbers=none]{../output/coefficient_differences.txt}
+
+Tableau des coefficients pour les trois méthodes :
+\lstinputlisting[style=pythonstyle,numbers=none,basicstyle=\ttfamily\scriptsize]{../output/coefficient_comparison.txt}
+
+Coefficients avec scikit-learn :
+\lstinputlisting[style=pythonstyle,numbers=none,basicstyle=\ttfamily\scriptsize]{../output/sklearn_coefficients.txt}
+
+\subsection{Conclusion}
+
+Les coefficients produits par l'implémentation manuelle, \texttt{statsmodels} et \texttt{scikit-learn} coïncident à la précision numérique près.
+Cela valide l'implémentation matricielle manuelle du modèle MCO.
+
+\section{Analyse de la variance (ANOVA) pour la régression multiple}
+
+\subsection{Formules mathématiques}
+
+La décomposition de la variabilité totale est :
+\[
+SC_{\text{totale}} = SC_{\text{reg}} + SC_{\text{res}}.
+\]
+
+avec :
+\[
+SC_{\text{totale}} = \sum_{i=1}^n (Y_i - \bar{Y})^2,
+\qquad
+SC_{\text{reg}} = \sum_{i=1}^n (\hat{Y}_i - \bar{Y})^2,
+\qquad
+SC_{\text{res}} = \sum_{i=1}^n (Y_i - \hat{Y}_i)^2.
+\]
+
+Les degrés de liberté sont :
+\[
+dl_{\text{reg}} = p, \qquad dl_{\text{res}} = n - p - 1, \qquad dl_{\text{totale}} = n - 1.
+\]
+
+Les moyennes carrées sont :
+\[
+MC_{\text{reg}} = \frac{SC_{\text{reg}}}{p},
+\qquad
+MC_{\text{res}} = \frac{SC_{\text{res}}}{n-p-1}.
+\]
+
+La statistique de test globale est :
+\[
+F_{\text{stat}} = \frac{MC_{\text{reg}}}{MC_{\text{res}}}.
+\]
+
+Sous $H_0 : \beta_1 = \cdots = \beta_p = 0$, on a :
+\[
+F_{\text{stat}} \sim \mathcal{F}_{p,n-p-1}.
+\]
+
+La p-valeur s'obtient par :
+\[
+p\text{-valeur} = P\left(F_{p,n-p-1} \geq F_{\text{obs}}\right)
+= 1 - F_{\mathcal{F}_{p,n-p-1}}(F_{\text{obs}}).
+\]
+
+\subsection{Code utilisé}
+
+\lstinputlisting{../src/anova.py}
+
+\subsection{Tableaux ANOVA}
+
+ANOVA avec l'implémentation manuelle :
+\lstinputlisting[style=pythonstyle,numbers=none]{../output/anova_manual.txt}
+
+ANOVA avec \texttt{LinearRegression} de scikit-learn :
+\lstinputlisting[style=pythonstyle,numbers=none]{../output/anova_sklearn.txt}
+
+Comparaison numérique des deux tableaux :
+\lstinputlisting[style=pythonstyle,numbers=none]{../output/anova_comparison.txt}
+
+Résumé interprétatif :
+\lstinputlisting[style=pythonstyle,numbers=none]{../output/anova_interpretation.txt}
+
+\subsection{Analyse des résultats}
+
+\textbf{(a) Comparaison des tableaux.}
+Les tableaux ANOVA du modèle manuel et du modèle scikit-learn sont identiques à la précision numérique près, ce qui est cohérent avec l'égalité déjà observée entre les coefficients et les prédictions.
+
+\textbf{(b) Signification de la statistique $F_{\text{stat}}$.}
+La statistique $F_{\text{stat}}$ compare la variabilité moyenne expliquée par le modèle à la variabilité moyenne restante dans les résidus.
+Une grande valeur de $F_{\text{stat}}$ signifie que le modèle explique une part substantielle de la variabilité de \texttt{wage} relativement au bruit résiduel.
+
+\textbf{(c) Signification de la p-valeur.}
+La p-valeur très petite indique que l'hypothèse nulle globale $H_0 : \beta_1=\cdots=\beta_p=0$ doit être rejetée.
+Autrement dit, au moins une variable explicative contribue significativement à la prédiction du salaire.
+
+\textbf{(d) Conclusion globale.}
+L'ensemble des variables explicatives améliore significativement la régression par rapport à un modèle ne contenant qu'un intercept.
+Le modèle multiple est donc utile globalement, même si cela ne signifie pas que toutes les variables individuelles sont significatives.
+
+\section{Analyse individuelle des coefficients avec statsmodels}
+
+\subsection{Code utilisé}
+
+\lstinputlisting{../src/coefficient_analysis.py}
+
+\subsection{Tableau ANOVA séquentiel (type I)}
+
+\lstinputlisting[style=pythonstyle,numbers=none,basicstyle=\ttfamily\scriptsize]{../output/statsmodels_anova_type1.txt}
+
+\subsection{Coefficients, statistiques t et p-valeurs}
+
+\lstinputlisting[style=pythonstyle,numbers=none,basicstyle=\ttfamily\scriptsize]{../output/statsmodels_coefficients_pvalues.txt}
+
+\subsection{Résumé global du modèle}
+
+\lstinputlisting[style=pythonstyle,numbers=none]{../output/model_overall_stats.txt}
+
+Comparaison de $R^2$ entre les trois méthodes :
+\lstinputlisting[style=pythonstyle,numbers=none]{../output/r_squared_comparison.txt}
+
+\subsection{Variables significatives et non significatives}
+
+Variables significatives au seuil de 5\% :
+\lstinputlisting[style=pythonstyle,numbers=none,basicstyle=\ttfamily\scriptsize]{../output/significant_variables.txt}
+
+Variables non significatives au seuil de 5\% :
+\lstinputlisting[style=pythonstyle,numbers=none,basicstyle=\ttfamily\scriptsize]{../output/non_significant_variables.txt}
+
+\subsection{Analyse et interprétation}
+
+\textbf{(a) Interprétation de $R^2$.}
+Le coefficient de détermination vaut environ $0.3396$.
+Le modèle explique donc près de 34\% de la variabilité du salaire.
+Il s'agit d'une amélioration nette par rapport à la régression simple du Devoir 2, mais une fraction importante de la variabilité demeure non expliquée.
+
+\textbf{(b) Variables ayant un impact significatif.}
+Les plus fortes contributions positives viennent surtout des niveaux d'éducation élevés, en particulier \texttt{education\_5. Advanced Degree} et \texttt{education\_4. College Grad}.
+Le fait d'être marié, d'appartenir à la classe d'emploi \texttt{Information}, d'avoir une meilleure santé auto-déclarée et l'effet de l'âge demeurent également significatifs.
+À l'inverse, l'absence d'assurance santé (\texttt{health\_ins\_2. No}) est associée à un effet négatif important et significatif sur le salaire.
+
+\textbf{(c) Variables semblant ne pas avoir d'influence significative.}
+Les variables \texttt{maritl\_3. Widowed}, \texttt{maritl\_4. Divorced}, \texttt{race\_3. Asian} et \texttt{race\_4. Other} ont des p-valeurs supérieures à 0.05.
+Une fois les autres variables contrôlées, leurs effets partiels ne sont donc pas suffisamment distincts de zéro.
+
+\textbf{Remarque méthodologique.}
+Le tableau ANOVA de type I est séquentiel : il dépend de l'ordre d'introduction des variables dans le modèle.
+Pour juger l'effet partiel d'une variable en présence de toutes les autres, les p-valeurs du résumé du modèle (\texttt{model.summary()}) sont plus pertinentes que les sommes des carrés séquentielles.
+
+\section{Analyse des résidus et interprétation des résultats}
+
+\subsection{Code utilisé}
+
+\lstinputlisting{../src/residual_analysis.py}
+
+\subsection{Résumé numérique des résidus}
+
+\lstinputlisting[style=pythonstyle,numbers=none]{../output/residual_summary.txt}
+
+Comparaison avec la régression simple du Devoir 2 :
+\lstinputlisting[style=pythonstyle,numbers=none]{../output/simple_vs_multiple.txt}
+
+\subsection{Graphique des résidus}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../output/residuals_plot.png}
+    \caption{Histogramme, QQ-plot et résidus en fonction de l'âge pour la régression multiple.}
+\end{figure}
+
+\subsection{Interprétation}
+
+\textbf{(a) Analyse des graphiques.}
+L'histogramme des résidus est centré autour de zéro, mais conserve une asymétrie vers la droite.
+Le QQ-plot montre que les points s'écartent encore de la droite théorique dans les queues, ce qui signale la présence d'observations extrêmes et une normalité imparfaite.
+Le nuage des résidus en fonction de l'âge ne montre plus de tendance linéaire marquée, ce qui est meilleur qu'en régression simple, mais la dispersion n'est pas complètement uniforme.
+
+\textbf{Comparaison avec la régression simple.}
+La régression multiple améliore sensiblement l'ajustement : $R^2$ passe d'environ 0.038 à 0.340 et le RMSE diminue d'environ 7 unités.
+Les résidus sont donc globalement plus faibles et mieux recentrés qu'avec le modèle basé uniquement sur l'âge.
+
+\textbf{(b) Conclusion sur la qualité du modèle.}
+Le modèle multiple est clairement meilleur que le modèle simple, mais il reste imparfait.
+Une part importante de la variabilité du salaire n'est toujours pas expliquée, et les diagnostics de résidus suggèrent encore des violations des hypothèses de normalité et d'homoscedasticité.
+
+\textbf{(c) Pistes d'amélioration.}
+Les pistes les plus naturelles sont :
+\begin{itemize}
+    \item utiliser \texttt{logwage} comme variable réponse afin de réduire l'asymétrie ;
+    \item ajouter des termes non linéaires, par exemple \texttt{age}$^2$ ;
+    \item tester des interactions entre certaines variables (par exemple âge et éducation) ;
+    \item considérer des méthodes de sélection de variables ou de régularisation si l'on souhaite un modèle plus parcimonieux.
+\end{itemize}
 
 \begin{thebibliography}{9}
 \bibitem{repo}
-Leonard Excoffier.~\emph{MTH8302~-- Devoir 3: R\'{e}gression Lin\'{e}aire Multiple}.\ GitHub repository.
-\url{https://github.com/excoffierleonard/mth8302-devoir3.git}. Consult\'{e} le 9 mars 2026.
+Leonard Excoffier.~\emph{MTH8302~-- Devoir 3: Régression Linéaire Multiple}.\ GitHub repository.
+\url{https://github.com/excoffierleonard/mth8302-devoir3.git}. Consulté le 28 mars 2026.
 \end{thebibliography}
 
 \end{document}

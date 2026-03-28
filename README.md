@@ -35,6 +35,8 @@ Tout en une commande :
 ./run.sh
 ```
 
+Le script préfère un environnement virtuel compatible s'il en trouve un (`.venv/` local, ou celui du projet `mth8302-devoir2` voisin), puis bascule sur `uv` si nécessaire.
+
 Cela exécute tous les scripts Python (génère figures et fichiers texte dans `output/`), puis compile le rapport LaTeX. Le PDF final est généré à la racine du projet sous `MTH8302_ExcoffierLeonard_2085276_Devoir3.pdf`.
 
 ## Visualisation
