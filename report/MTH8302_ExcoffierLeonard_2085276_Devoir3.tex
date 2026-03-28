@@ -1,0 +1,74 @@
+\documentclass[12pt,letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{etoolbox}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{listingsutf8}
+\usepackage{verbatim}
+
+% Code listing style for Python
+\lstdefinestyle{pythonstyle}{
+  language=Python,
+  inputencoding=utf8/latin1,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue!70!black}\bfseries,
+  commentstyle=\color{green!40!black}\itshape,
+  stringstyle=\color{orange!70!black},
+  numbers=left,
+  numberstyle=\scriptsize\color{gray!70},
+  stepnumber=1,
+  numbersep=10pt,
+  frame=single,
+  framerule=0.3pt,
+  rulecolor=\color{gray!40},
+  backgroundcolor=\color{gray!5},
+  breaklines=true,
+  breakatwhitespace=true,
+  showstringspaces=false,
+  tabsize=4,
+  columns=fullflexible,
+  keepspaces=true,
+  xleftmargin=12pt,
+  xrightmargin=6pt,
+  aboveskip=8pt,
+  belowskip=8pt,
+  captionpos=b
+}
+
+\lstset{style=pythonstyle}
+
+% Start each section on a new page
+\pretocmd{\section}{\clearpage}{}{}
+
+\title{MTH8302~-- Devoir 3: R\'{e}gression Lin\'{e}aire Multiple}
+\author{Leonard Excoffier (2085276)}
+\date{Hiver 2026}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\section*{Introduction}
+
+Le d\'{e}p\^{o}t GitHub~\cite{repo} contient le code complet, structur\'{e} et pr\^{e}t \`{a} \^{e}tre ex\'{e}cut\'{e}.
+Tous les scripts Python se trouvent dans \texttt{src/} et les sorties (figures, fichiers texte) dans \texttt{output/}.
+Le script \texttt{run.sh} ex\'{e}cute l'ensemble des scripts puis compile le rapport automatiquement.
+Le PDF compil\'{e} est g\'{e}n\'{e}r\'{e} \`{a} la racine du projet.
+
+\begin{thebibliography}{9}
+\bibitem{repo}
+Leonard Excoffier.~\emph{MTH8302~-- Devoir 3: R\'{e}gression Lin\'{e}aire Multiple}.\ GitHub repository.
+\url{https://github.com/excoffierleonard/mth8302-devoir3.git}. Consult\'{e} le 9 mars 2026.
+\end{thebibliography}
+
+\end{document}
